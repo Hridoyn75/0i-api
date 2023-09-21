@@ -1,11 +1,17 @@
-const express = require('express');
-const shortid = require('shortid');
+import express from 'express';
+import shortid from 'shortid';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import db from './db.js';
+
+dotenv.config();
+
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-const links = [];
 
+app.use(cors())
 app.use(express.json());
 
 app.get('/', (req, res) => {
@@ -18,10 +24,14 @@ app.get('/shorten', (req, res) => {
   if(longUrl){
     const shortUrl = shortid.generate();
 
-  const link = { longUrl,shortUrl };
-  links.push(link);
-  console.log(links)
-  res.json({ longUrl, "shortUrl": "https://0i.vercel.app/" + shortUrl });
+  const link = { longUrl, "shortUrl": "https://0i.vercel.app/" + shortUrl };
+
+  const q= `INSERT INTO links (longUrl,shortUrl) VALUES (?,?)`;
+
+  db.query(q, [longUrl,shortUrl],(error, data)=>{
+    if(error) return res.status(500).json("Database error")
+    res.json(link);
+  })
   }else{
  res.json("Please send url with longUrl query");
   }
@@ -30,14 +40,15 @@ app.get('/shorten', (req, res) => {
 // Redirect to the original URL when accessing the short URL
 app.get('/:shortUrl', (req, res) => {
   const { shortUrl } = req.params;
-  const link = links.find((item) => item.shortUrl === shortUrl);
 
-  console.log(links)
-  if (link) {
-    res.redirect(link.longUrl);
-  } else {
-    res.status(404).json({ error: 'Link not found' });
-  }
+  const q = `SELECT longUrl FROM links WHERE shortUrl = ?`
+
+  db.query(q, [shortUrl], (error, data)=>{
+    if(error) return res.status(500).json("Database error");
+
+    if(data.length === 0) return res.status(404).send("Invaild url")
+    res.redirect(data[0].longUrl);
+  })
 });
 
 app.listen(PORT, () => {
