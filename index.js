@@ -15,7 +15,7 @@ app.use(cors())
 app.use(express.json());
 
 app.get('/', (req, res) => {
-    res.json("Server is live!");
+  res.redirect("https://linkspro.vercel.app");
 })
 // Create a route to shorten a URL using a GET request and query parameters
 app.get('/shorten', (req, res) => {
@@ -46,7 +46,7 @@ app.get('/:shortUrl', (req, res) => {
   db.query(q, [shortUrl], (error, data)=>{
     if(error) return res.status(500).json("Database error");
 
-    if(data.length === 0) return res.status(404).send("Invaild url")
+    if(data.length === 0) return res.redirect("https://linkspro.vercel.app");
     res.redirect(data[0].longUrl);
   })
 });
