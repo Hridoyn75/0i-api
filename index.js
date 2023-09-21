@@ -8,6 +8,9 @@ const links = [];
 
 app.use(express.json());
 
+app.get('/', (req, res) => {
+    res.json("Server is live!");
+})
 // Create a route to shorten a URL using a GET request and query parameters
 app.get('/shorten', (req, res) => {
   const longUrl = req.query.longUrl;
