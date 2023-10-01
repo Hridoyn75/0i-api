@@ -27,8 +27,10 @@ const GenerateShorten = (longUrl, res) => {
   db.query(q, [shortUrl], (error, data) => {
     if (error) return res.status(500).json("Database error");
     if(data.length !== 0) {
+
       length += 1;
-      GenerateShorten(longUrl)
+      GenerateShorten(longUrl, res)
+      return
     }
     const link = { longUrl, "shortUrl": "https://0i.vercel.app/" + shortUrl };
 
