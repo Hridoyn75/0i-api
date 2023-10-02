@@ -14,52 +14,42 @@ app.use(cors());
 app.use(express.json());
 
 app.get("/", (req, res) => {
-  res.redirect("https://linkspro.vercel.app");
+  res.redirect(process.env.FRONTEND_URL);
 });
 
 let length = 2;
 
 const GenerateShorten = (longUrl, res) => {
-
   const shortUrl = nanoid(length);
 
   const q = ` SELECT * FROM links WHERE shortUrl = ?`;
   db.query(q, [shortUrl], (error, data) => {
     if (error) return res.status(500).json("Database error");
-    if(data.length !== 0) {
-
+    if (data.length !== 0) {
       length += 1;
-      GenerateShorten(longUrl, res)
-      return
+      GenerateShorten(longUrl, res);
+      return;
     }
-    const link = { longUrl, "shortUrl": "https://0i.vercel.app/" + shortUrl };
+    const link = {
+      longUrl,
+      shortUrl: process.env.BACKEND_URL + "/" + shortUrl,
+    };
 
-    const q= `INSERT INTO links (longUrl,shortUrl) VALUES (?,?)`;
+    const q = `INSERT INTO links (longUrl,shortUrl) VALUES (?,?)`;
 
-    db.query(q, [longUrl,shortUrl],(error, data)=>{
-      if(error) return res.status(500).json("Database error")
+    db.query(q, [longUrl, shortUrl], (error, data) => {
+      if (error) return res.status(500).json("Database error");
       res.json(link);
-    })
+    });
   });
 };
-
 
 // Create a route to shorten a URL using a GET request and query parameters
 app.get("/shorten", (req, res) => {
   const longUrl = req.query.longUrl;
 
   if (longUrl) {
-
-    GenerateShorten(longUrl, res)
-
-    // const link = { longUrl, "shortUrl": "https://0i.vercel.app/" + shortUrl };
-
-    // const q= `INSERT INTO links (longUrl,shortUrl) VALUES (?,?)`;
-
-    // db.query(q, [longUrl,shortUrl],(error, data)=>{
-    //   if(error) return res.status(500).json("Database error")
-    //   res.json(link);
-    // })
+    GenerateShorten(longUrl, res);
   } else {
     res.json("Please send url with longUrl query");
   }
@@ -74,7 +64,7 @@ app.get("/:shortUrl", (req, res) => {
   db.query(q, [shortUrl], (error, data) => {
     if (error) return res.status(500).json("Database error");
 
-    if (data.length === 0) return res.redirect("https://linkspro.vercel.app");
+    if (data.length === 0) return res.redirect(process.env.FRONTEND_URL);
     res.redirect(data[0].longUrl);
   });
 });
