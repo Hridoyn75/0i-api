@@ -10,7 +10,16 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(cors());
+const allowedOrigins = [
+  'https://hridoylink.vercel.app',
+];
+
+const corsOptions = {
+  origin: allowedOrigins,
+  optionsSuccessStatus: 200, 
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 app.get("/", (req, res) => {
