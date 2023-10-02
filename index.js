@@ -12,6 +12,7 @@ const PORT = process.env.PORT || 5000;
 
 const allowedOrigins = [
   'https://hridoylink.vercel.app',
+  'https://hridoylinks.vercel.app',
 ];
 
 const corsOptions = {
