@@ -11,13 +11,13 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 const allowedOrigins = [
-  'https://hridoylink.vercel.app',
-  'https://hridoylinks.vercel.app',
+  "https://hridoylink.vercel.app",
+  "https://hridoylinks.vercel.app",
 ];
 
 const corsOptions = {
   origin: allowedOrigins,
-  optionsSuccessStatus: 200, 
+  optionsSuccessStatus: 200,
 };
 
 app.use(cors(corsOptions));
@@ -69,13 +69,20 @@ app.get("/shorten", (req, res) => {
 app.get("/:shortUrl", (req, res) => {
   const { shortUrl } = req.params;
 
-  const q = `SELECT longUrl FROM links WHERE shortUrl = ?`;
+  const qSelect = `SELECT longUrl FROM links WHERE shortUrl = ?`;
 
-  db.query(q, [shortUrl], (error, data) => {
+  db.query(qSelect, [shortUrl], (error, data) => {
     if (error) return res.status(500).json("Database error");
 
-    if (data.length === 0) return res.redirect(process.env.FRONTEND_URL);
-    res.redirect(data[0].longUrl);
+    if (data.length !== 0) {
+      const qUpdate = "UPDATE links SET count = count + 1 WHERE shortUrl = ?";
+      db.query(qUpdate, [shortUrl], (error, result) => {
+        if (error) return res.status(500).json("Database error");
+        res.redirect(data[0].longUrl);
+      });
+      return;
+    }
+    res.redirect(process.env.FRONTEND_URL);
   });
 });
 
