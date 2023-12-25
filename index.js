@@ -13,6 +13,7 @@ const PORT = process.env.PORT || 5000;
 const allowedOrigins = [
   "https://hridoylink.vercel.app",
   "https://hridoylinks.vercel.app",
+  "http://localhost:3000",
 ];
 
 const corsOptions = {
@@ -31,6 +32,7 @@ let length = 2;
 
 const GenerateShorten = (longUrl, res) => {
   const shortUrl = nanoid(length);
+  const TrackingId = nanoid(15);
 
   const q = ` SELECT * FROM links WHERE shortUrl = ?`;
   db.query(q, [shortUrl], (error, data) => {
@@ -43,11 +45,12 @@ const GenerateShorten = (longUrl, res) => {
     const link = {
       longUrl,
       shortUrl: process.env.BACKEND_URL + "/" + shortUrl,
+      tracking_id: TrackingId,
     };
 
-    const q = `INSERT INTO links (longUrl,shortUrl) VALUES (?,?)`;
+    const q = `INSERT INTO links (longUrl,shortUrl, tracking_id) VALUES (?,?,?)`;
 
-    db.query(q, [longUrl, shortUrl], (error, data) => {
+    db.query(q, [longUrl, shortUrl, TrackingId], (error, data) => {
       if (error) return res.status(500).json("Database error");
       res.json(link);
     });
@@ -85,6 +88,16 @@ app.get("/:shortUrl", (req, res) => {
     res.redirect(process.env.FRONTEND_URL);
   });
 });
+
+app.get('/track/:id', (req, res)=>{
+  const trackingId = req.params.id;
+
+  const q = `SELECT * from links WHERE tracking_id = ?`
+  db.query(q, [trackingId], (error, data)=>{
+    if (error) return res.status(500).json("Database error");
+    res.json(data[0])
+  })
+})
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
